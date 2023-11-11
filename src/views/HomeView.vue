@@ -4,7 +4,7 @@
 import { defineComponent, ref, onMounted, reactive } from "vue";
 import { UploadFilled } from '@element-plus/icons-vue'
 import { useImgBBStore } from "@/stores/imgbb";
-import { ElLoading } from 'element-plus'
+import { ElLoading, ElNotification } from 'element-plus'
 import { TrashIcon, EyeIcon } from '@heroicons/vue/24/solid'
 
 export default defineComponent({
@@ -24,6 +24,26 @@ export default defineComponent({
     });
     
     const onUploadAttachment = async (options) => {
+      if (!options.file.type.includes('image')) {
+        ElNotification({
+          title: "Error",
+          message: "Hanya bisa mengunggah gambar",
+          type: "error",
+        });
+
+        throw new Error();
+      }
+
+      if (options.file.size / 1000000 >= 2) {
+        ElNotification({
+          title: "Error",
+          message: "Ukuran file melebihi batas unggah",
+          type: "error",
+        });
+
+        throw new Error();
+      }
+
       const loading = ElLoading.service({
         lock: true,
         text: 'Uploading Image...',
@@ -143,7 +163,7 @@ export default defineComponent({
         }">
           <template v-for="list in grid * data.maxlist">
             <div class="relative group" v-if="list > ((grid - 1) * data.maxlist) && data.images[list - 1]">
-              <img class="transition-opacity duration-300 hover:opacity-75 h-auto max-w-full rounded-lg" :src="data.images[list - 1].display_url" alt="data.images[list - 1].title">
+              <img class="transition-opacity duration-300 hover:opacity-75 h-auto max-w-full rounded-lg" :src="data.images[list - 1].display_url" :alt="data.images[list - 1].title">
 
               <button class="hidden absolute inset-0 bg-black bg-opacity-20 w-full h-full flex items-center justify-center text-white transition-opacity duration-300 group-hover:flex eyeIcon">
                 <EyeIcon class="h-6 w-6" @click="seeImage(data.images[list - 1].display_url)" />
